@@ -27,7 +27,7 @@ int encryptData(char *data, int dataLength)
 		mov edx,data	//moves the file data into edx
 		
 		start: 
-			add edx,ecx
+			add edx+ecx,x01
 			cmp ecx,dataLength
 			je done
 			inc ecx
