@@ -27,8 +27,8 @@ int decryptData(char *data, int dataLength)
 		mov edx,data	//moves the file data into edx
 		
 		start: 
-			edx+ecx
-			cmp ecx,datalength
+			add edx,ecx
+			cmp ecx,dataLength
 			je done
 			inc ecx
 			jmp start
