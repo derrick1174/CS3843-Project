@@ -23,12 +23,15 @@ int decryptData(char *data, int dataLength)
 		//This segment of code will perform the same as the following in C: 
 		//   for(i=0;i<datalength;i++) 
 		//	 *(data+i) = *(data+i) ^ 1; //The carrot here means XOR
-		XOR ecx,ecx 	//sets ecx to zero
+		xor ecx,ecx 	//sets ecx to zero
 		mov edx,data	//moves the file data into edx
-		
+		jmp start
+
+		edc:
+			jmp start
 		start: 
-			XOR byte ptr [edx+edc], 0x1	//XORs the current bit
-			inc ecx				//Prepares to move to next bit
+			xor byte ptr [edx+edc],0x1	//XORs the current bit
+			inc ecx					//Prepares to move to next bit
 			cmp ecx,dataLength		//Checks for reaching end of loop
 			je done
 			jmp start
