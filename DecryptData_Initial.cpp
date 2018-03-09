@@ -27,10 +27,10 @@ int decryptData(char *data, int dataLength)
 		mov edx,data	//moves the file data into edx
 		
 		start: 
-			add edx+ecx,x01
-			cmp ecx,dataLength
+			XOR byte ptr [edx+edc], 0x1	//XORs the current bit
+			inc ecx				//Prepares to move to next bit
+			cmp ecx,dataLength		//Checks for reaching end of loop
 			je done
-			inc ecx
 			jmp start
 		done:
 			mov data,edx
