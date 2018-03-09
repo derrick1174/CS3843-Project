@@ -21,7 +21,7 @@ int decryptData(char *data, int dataLength)
 
 	__asm {
 		//This segment of code will perform the same as the following in C: 
-		//   for(i=0;i<datalength;i++)
+		//   for(i=0;i<datalength;i++) 
 		//	 *(data+i) = *(data+i) ^ 1; //The carrot here means XOR
 		XOR ecx,ecx 	//sets ecx to zero
 		mov edx,data	//moves the file data into edx
