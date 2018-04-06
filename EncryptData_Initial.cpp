@@ -31,12 +31,10 @@ int encryptData(char *data, int dataLength)
 		xor edx,edx
 		mov esi,data	//moves the file data into edx
 		
-		Dhigh://not quite correct yet
+		Dhigh://(first bit)(second bit)(third bit)(fourth bit) to (second bit)(third bit)(fourth bit)(first bit)
 			xor al,al
 			xor ah, ah
 			xor bl,bl
-			xor bh,bh
-			mov bh, [esi+edx]//save an extra copy of original
 			mov ah, [esi + edx]
 
 			RCL ah,1
@@ -50,20 +48,22 @@ int encryptData(char *data, int dataLength)
 			RCR al,1
 			RCL bl,1//bl low bits should have correctly rotated high bits of original here
 
-		DlowBits:
+		DlowBits://(first bit)(second bit)(third bit)(fourth bit) to (fourth bit)(first bit)(second bit)(third bit)
 			xor al,al
 			xor ah,ah
-			xor cl,cl
-			mov ah,bh
+			mov ah, [esi+edx]
 
 			RCR ah,1
-			RCL cl,1
-			RCR ah,1
-			RCL al,1
-			RCR ah, 1
-			RCL al, 1
-			RCR ah, 1
-			RCL al, 1//al low bits should have correctly rotated low bits of original here
+			RCL al,1//moves the fourth bit (that we want rotated) into the last bit of al
+
+			RCL ah,5//moves the other three bits we want up into queue for rotation
+			RCL ah,1//moves the first bit into carry flag
+			RCL al,1//moves first bit into al behind fourth bit
+			RCL ah, 1//moves second bit into carry flag
+			RCL al, 1//moves second bit into al behind first bit
+			RCL ah, 1//moves third bit into carry flag
+			RCL al, 1//moves third bit behind second bit. al low nibble now holds correctly rotated version.
+			RCL al,4//al high nibble should have correctly rotated low bits of original here
 
 		Dsave:
 			xor cl,cl
@@ -77,18 +77,19 @@ int encryptData(char *data, int dataLength)
 			RCR cl, 1//rotated high bits of original are now in cl's high bits 
 
 			RCR cl,4 //rotated high bits of original are now in cl's low bits
-
-			RCR al,1
+			
+			//need to move al's high nibble into cl's low nibble
+			RCL al,1
 			RCL cl,1
-			RCR al, 1
+			RCL al, 1
 			RCL cl, 1
-			RCR al, 1
+			RCL al, 1
 			RCL cl, 1
-			RCR al, 1
+			RCL al, 1
 			RCL cl, 1//cl should now have correctly rotated version we are looking for
 
 			mov[esi+edx],cl
-		/*B:
+		B:
 			xor al,al
 			xor ecx,ecx
 			mov ecx,4
@@ -101,39 +102,39 @@ int encryptData(char *data, int dataLength)
 			RCL ah, 1
 			LOOP loop_B
 			dec ah
-			mov[esi + edx], ah*/
+			mov[esi + edx], ah
 
-		//A:
-		//	xor al,al
-		//	xor ah,ah
-		//	
-		//	mov al, [esi+edx]
-		//	mov ah,al
-		//	RCL ah,1
-		//	RCL al,1
-		//	mov[esi+edx],al
-		//	
-		//C:
-		//	xor ecx, ecx
-		//	xor al, al
-		//	xor ah, ah
-		//	mov ecx, 8
-		//	mov al, [esi + edx]
+		A:
+			xor al,al
+			xor ah,ah
+			
+			mov al, [esi+edx]
+			mov ah,al
+			RCL ah,1
+			RCL al,1
+			mov[esi+edx],al
+			
+		C:
+			xor ecx, ecx
+			xor al, al
+			xor ah, ah
+			mov ecx, 8
+			mov al, [esi + edx]
 
-		//loop_C :
-		//	RCL al, 1
-		//	RCR ah, 1
-		//	LOOP loop_C
-		//	mov[esi + edx], ah
+		loop_C :
+			RCL al, 1
+			RCR ah, 1
+			LOOP loop_C
+			mov[esi + edx], ah
 
-		//E:
-		//	xor bl,bl
-		//	xor eax,eax
-		//	mov eax, [esi+edx]
-		//	and eax, 0xFF
+		E:
+			xor bl,bl
+			xor eax,eax
+			mov eax, [esi+edx]
+			and eax, 0xFF
 
-		//	mov bl, [gEncodeTable+eax]
-		//	mov [esi+edx],bl
+			mov bl, [gEncodeTable+eax]
+			mov [esi+edx],bl
 
 		begin:
 			inc edx
