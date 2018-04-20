@@ -88,21 +88,19 @@ int encryptData(char *data, int dataLength)
 			RCL al, 1
 			RCL cl, 1//cl should now have correctly rotated version we are looking for
 
-			mov[esi+edx],cl
+			mov[esi + edx], cl
+			
 		B:
-			xor al,al
-			xor ecx,ecx
-			mov ecx,4
-			xor ah,ah
-			mov al, [esi+edx]
-			mov ah,al
-			RCL al,1
+			xor al, al
+			xor bl, bl
+			xor ecx, ecx
+			mov ecx, 4
+			xor ah, ah
+			mov al, [esi + edx]
+			mov bl, al
 
-		loop_B :
-			RCL ah, 1
-			LOOP loop_B
-			dec ah
-			mov[esi + edx], ah
+			rol al,4
+			mov[esi+edx],al
 
 		A:
 			xor al,al
@@ -135,7 +133,7 @@ int encryptData(char *data, int dataLength)
 
 			mov bl, [gEncodeTable+eax]
 			mov [esi+edx],bl
-
+			
 		begin:
 			inc edx
 			mov ecx,edx

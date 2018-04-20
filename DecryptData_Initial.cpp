@@ -31,6 +31,51 @@ int decryptData(char *data, int dataLength)
 		xor edx, edx
 		mov esi, data	//moves the file data into edx
 
+		E :
+		xor bl, bl
+			xor eax, eax
+			mov eax, [esi + edx]
+			and eax, 0xFF
+
+			mov bl, [gDecodeTable + eax]
+			mov[esi + edx], bl
+
+		C :
+		xor ecx, ecx
+			xor al, al
+			xor ah, ah
+			mov ecx, 8
+			mov al, [esi + edx]
+
+
+		loop_C :
+			   RCL al, 1
+			   RCR ah, 1
+			   LOOP loop_C
+			   mov[esi + edx], ah
+
+		   A :
+		xor al, al
+			xor ah, ah
+
+			mov al, [esi + edx]
+			mov ah, al
+			RCR ah, 1
+			RCR al, 1
+			mov[esi + edx], al
+			
+		B :
+		xor al, al
+			xor bl, bl
+			xor ecx, ecx
+			mov ecx, 4
+			xor ah, ah
+			mov al, [esi + edx]
+			mov bl, al
+
+			rol al, 4
+			mov[esi + edx], al
+			
 		Dhigh: //(2)(3)(4)(1) back to (1)(2)(3)(4)
 			xor ah, ah
 			xor bl, bl
@@ -88,59 +133,12 @@ int decryptData(char *data, int dataLength)
 			RCL cl, 1//low nibble of decrypted is now in low nibble of cl with high nibble of decrypted shifted into high nibble of cl
 
 			mov[esi + edx], cl
-
-		B:
-			xor al, al
-			xor ecx, ecx
-			mov ecx, 4
-			xor ah, ah
-			mov al, [esi + edx]
-			mov ah, al
-			RCL al, 1
-
-		loop_B :
-			RCL ah, 1
-			LOOP loop_B
-			inc ah
-			mov[esi + edx], ah
-
-		A :
-			xor al, al
-			xor ah, ah
-
-			mov al, [esi + edx]
-			mov ah, al
-			RCR ah, 1
-			RCR al, 1
-			mov[esi + edx], al
-
-		C :
-			xor ecx,ecx
-			xor al,al
-			xor ah,ah
-			mov ecx,8
-			mov al, [esi+edx]
 			
-
-		loop_C:
-			  RCL al,1
-			  RCR ah,1
-			  LOOP loop_C
-			  mov[esi+edx],ah
-		E :
-			xor bl, bl
-			xor eax, eax
-			mov eax, [esi + edx]
-			and eax, 0xFF
-
-			mov bl, [gDecodeTable + eax]
-			mov[esi + edx], bl
-
 		begin :
 			inc edx
 			mov ecx, edx
 			cmp ecx, dataLength
-			jne Dhigh
+			jne E
 	}
 
 	return resulti;
