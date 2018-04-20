@@ -19,18 +19,67 @@ int encryptData(char *data, int dataLength)
 	// access the parameters BEFORE setting up your own stack frame
 	// Also, you cannot use a lot of global variables - work with registers
 
-	__asm {//DBACE
-		// for each file[x]:
-		// (#A) rotate 1 bit to left 0xA5  0x4B
-		// (#B) swap nibbles 0xD2  0x2D
-		// (#C) reverse bit order 0x2D  0xB4
-		// (#D) rotate hi nibble left, lo nibble right 0xB4  0x72
-		// (#E) code table swap 0xE1  CodeTable[0xE1] 
-
+	__asm {
+		
 		xor ecx,ecx 	//sets ecx to zero
+		xor eax, eax
+		mov eax, dataLength
 		xor edx,edx
 		mov esi,data	//moves the file data into edx
+
+		push ebp
+		mov ebp,esp
+		sub esp,16
+
+		mov[ebp-4],eax //datalength
+		mov[ebp - 8], ecx//current index
+		mov[ebp - 12], ecx//hop count
+		mov[ebp - 16], ecx//current round
 		
+		begin_of_encrypt:
+			xor eax,eax
+			xor ecx,ecx
+			xor ebx,ebx
+
+			mov ecx, [ebp-16]
+			mov ah, [gPasswordHash+ecx*4]
+			mov al, [gPasswordHash+1+ecx*4]
+
+			mov bh, [gPasswordHash+2+ecx*4]
+			mov bl, [gPasswordHash + 3 + ecx * 4]
+
+			cmp bx,0x0
+			jne zero_check
+			mov bx,0xFFFF
+		zero_check:
+			mov [ebp-8],eax
+			mov [ebp-12],ebx
+
+		hop_step:
+			xor eax,eax
+			xor ebx,ebx
+			xor ecx,ecx
+			lea ecx,gkey 
+			mov ebx, [ebp-8]
+
+			mov al, [esi+edx]
+			xor al,[ecx+ebx]
+
+			mov [esi+edx],al
+
+			xor eax,eax
+			xor ecx,ecx
+
+			add ebx,[ebp-12]
+			cmp ebx,65537
+			jb index_check
+			sub ebx,65537
+
+		index_check:
+			mov[ebp-8],ebx
+
+
+		//DBACE
 		Dhigh://(first bit)(second bit)(third bit)(fourth bit) to (second bit)(third bit)(fourth bit)(first bit)
 			xor al,al
 			xor ah, ah
@@ -137,8 +186,23 @@ int encryptData(char *data, int dataLength)
 		begin:
 			inc edx
 			mov ecx,edx
-			cmp ecx,dataLength
-			jne Dhigh
+			cmp ecx,[ebp-4]
+			jne hop_step
+
+		begin_newRound:
+			xor ecx,ecx
+			xor eax,eax
+			xor ebx,ebx
+			xor edx,edx
+
+			mov ecx, [ebp-16]
+			inc ecx
+			mov[ebp-16],ecx
+			cmp ecx,gNumRounds
+			jne begin_of_encrypt
+
+			mov esp,ebp
+			pop ebp
 	}
 
 	return resulti;
